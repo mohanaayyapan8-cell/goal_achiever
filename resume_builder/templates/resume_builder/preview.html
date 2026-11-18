@@ -1,0 +1,25 @@
+{% extends "base_app.html" %}
+{% block title %}Preview – {{ resume.title }}{% endblock %}
+{% block content %}
+<p class="breadcrumbs no-print"><a href="{% url 'resume_builder:editor' resume.pk %}">&larr; Back to editor</a></p>
+<div class="actions no-print"><a class="btn" href="{% url 'resume_builder:pdf' resume.pk %}">Download PDF</a>
+  <a class="btn btn-ghost" href="{% url 'resume_builder:review_resume' resume.pk %}">ATS review</a>
+  <button type="button" class="btn btn-ghost" onclick="window.print()">Print</button></div>
+{% if bad_chars %}<div class="alert alert-warning no-print">These characters cannot be shown in the PDF and will appear as “?”: <strong>{{ bad_chars|join:" " }}</strong>. Replace them with plain letters.</div>{% endif %}
+<p class="muted no-print"><small>This preview shows the same words as the PDF: one column, no tables, no images, standard headings.</small></p>
+<article class="paper">
+  <h1>{{ content.name }}</h1>
+  {% if content.headline %}<p class="paper-center">{{ content.headline }}</p>{% endif %}
+  {% if content.contact %}<p class="paper-center">{{ content.contact|join:" | " }}</p>{% endif %}
+  {% for sec in content.sections %}
+    <h2>{{ sec.title }}</h2>
+    {% for item in sec.items %}
+      {% if item.text %}{% if sec.key == "certifications" or sec.key == "achievements" %}<ul><li>{{ item.text }}</li></ul>{% else %}<p>{{ item.text }}</p>{% endif %}
+      {% else %}
+        <p class="paper-head"><strong>{{ item.title }}</strong>{% if item.subtitle %} - {{ item.subtitle }}{% endif %}{% if item.dates %} ({{ item.dates }}){% endif %}{% if item.extra %}<br>{{ item.extra }}{% endif %}</p>
+        {% if item.bullets %}<ul>{% for b in item.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+</article>
+{% endblock %}

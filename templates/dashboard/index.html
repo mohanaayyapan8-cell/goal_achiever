@@ -1,0 +1,155 @@
+{% extends "base_app.html" %}
+{% load static %}
+{% block title %}Dashboard – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ greeting }}, {{ profile.display_name }}!</h1>
+  <p class="muted">{{ now|date:"l, d F Y" }} &middot; {{ profile.timezone }}</p>
+  <p class="quote">&ldquo;{{ motivation }}&rdquo;</p>
+</div>
+
+
+
+<section class="card streak-card state-{{ streak.state }}">
+  <div class="row-between">
+    <div><span class="flame">&#128293;</span> <span class="big">{{ streak.streak }}</span> <span class="muted">day streak &middot; longest {{ streak.longest }}</span></div>
+    <a class="btn btn-small btn-ghost" href="{% url 'streaks:overview' %}">Streak details</a>
+  </div>
+  <p class="streak-msg">{{ streak.message }}</p>
+  {% include "streaks/_checklist.html" with progress=streak.progress %}
+  {% if recent_badges %}<p class="muted">Recent badges: {% for a in recent_badges %}<span title="{{ a.description }}">{{ a.icon }} {{ a.title }}</span>{% if not forloop.last %} &middot; {% endif %}{% endfor %}</p>{% endif %}
+</section>
+
+{% if challenge %}
+  {% if overdue_count %}
+    <div class="alert alert-warning">&#9888;&#65039; You have <strong>{{ overdue_count }}</strong> unfinished goal{{ overdue_count|pluralize }} from earlier days.
+      <a href="{% url 'planner:overview' %}">Review and reschedule</a>. A fresh start is always possible.</div>
+  {% endif %}
+  <section class="two-col">
+    <div class="card">
+      <h3>40-day challenge</h3>
+      {% if challenge.phase == "running" %}
+        <p class="big">Day {{ challenge.current_day }} <small class="muted">of 40</small></p>
+      {% elif challenge.phase == "not_started" %}
+        <p class="big">Starts {{ challenge.start|date:"d M" }}</p>
+      {% else %}
+        <p class="big">Challenge finished</p>
+      {% endif %}
+      {% include "partials/progress_bar.html" with value=challenge.calendar_percent %}
+      <p class="muted">{{ challenge.goals_done }}/{{ challenge.goals_total }} goals done ({{ challenge.goal_percent }}%) &middot;
+        {{ challenge.days_fully_done }} full days &middot; {{ challenge.hours_done }}h studied</p>
+      <p><a href="{% url 'planner:overview' %}">Open planner</a></p>
+    </div>
+    <div class="card">
+      <h3>Today&rsquo;s goals</h3>
+      {% if today_plan %}
+        <p class="muted">{{ today_done }}/{{ today_goals|length }} completed ({{ today_percent }}%)</p>
+      {% endif %}
+      {% for g in today_goals %}
+        <div class="goal-row {% if g.is_completed %}goal-done{% endif %}">
+          <form method="post" action="{% url 'planner:goal_toggle' g.pk %}" class="inline-form">{% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard:index' %}">
+            <button type="submit" class="check {% if g.is_completed %}checked{% endif %}" aria-label="Toggle goal">{% if g.is_completed %}&#10003;{% endif %}</button>
+          </form>
+          <div class="goal-text"><strong>{{ g.title }}</strong> <small class="muted">{{ g.estimated_minutes }} min</small></div>
+        </div>
+      {% empty %}
+        <p class="muted">{% if today_plan %}No goals for today yet.{% else %}Today is outside your 40-day dates.{% endif %}</p>
+      {% endfor %}
+      {% if today_plan %}<p><a class="btn btn-small" href="{% url 'planner:goal_create' %}?day={{ today_plan.day_number }}">+ Add goal</a>
+        <a class="btn btn-small btn-ghost" href="{% url 'planner:day_detail' today_plan.day_number %}">Open today</a></p>{% endif %}
+    </div>
+  </section>
+{% else %}
+  <div class="card">
+    <h3>Start your 40-day challenge</h3>
+    <p class="muted">Create your 40-day plan to schedule daily goals and track your consistency.</p>
+    <p><a class="btn" href="{% url 'planner:overview' %}">Start the challenge</a></p>
+  </div>
+{% endif %}
+
+{% if stats.topics == 0 %}
+  <div class="card empty">
+    <h3>Let&rsquo;s set up your learning plan</h3>
+    <p>You have no topics yet. Load the default curriculum (Python, SQL, aptitude, DSA, interview prep and more), then edit it however you like.</p>
+    <form method="post" action="{% url 'learning:load_defaults' %}">{% csrf_token %}
+      <button class="btn" type="submit">Load default curriculum</button>
+    </form>
+    <p class="muted">Or <a href="{% url 'learning:domain_create' %}">create your own domain</a>.</p>
+  </div>
+{% else %}
+  <section class="stat-grid">
+    <div class="stat"><span class="stat-num">{{ stats.percent }}%</span><span class="stat-label">Overall progress</span></div>
+    <div class="stat"><span class="stat-num">{{ stats.completed }}<small>/{{ stats.topics }}</small></span><span class="stat-label">Topics completed</span></div>
+    <div class="stat"><span class="stat-num">{{ stats.in_progress }}</span><span class="stat-label">In progress</span></div>
+    <div class="stat"><span class="stat-num">{{ stats.technologies }}</span><span class="stat-label">Technologies in {{ stats.domains }} domains</span></div>
+  </section>
+
+  <section class="two-col">
+    <div class="card">
+      <h3>Overall progress</h3>
+      <div class="chart-box"><canvas id="overallChart" aria-label="Topics by status" role="img"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Domain-wise progress (%)</h3>
+      <div class="chart-box"><canvas id="domainChart" aria-label="Completion percentage by domain" role="img"></canvas></div>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div class="card">
+      <h3>Continue learning</h3>
+      {% for p in in_progress %}
+        <p class="list-row"><a href="{% url 'learning:technology_detail' p.topic.technology_id %}">{{ p.topic.name }}</a>
+          <span class="muted">{{ p.topic.technology.name }}</span></p>
+      {% empty %}
+        <p class="muted">Nothing in progress. Open <a href="{% url 'learning:domain_list' %}">Learning</a> and press <strong>Start</strong> on a topic.</p>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <h3>Recently completed</h3>
+      {% for p in recent %}
+        <p class="list-row">&#9989; {{ p.topic.name }}
+          <span class="muted">{{ p.topic.technology.name }} &middot; {{ p.completed_at|date:"d M" }}</span></p>
+      {% empty %}
+        <p class="muted">Complete your first topic to see it here.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Your domains</h3>
+    {% for d in domains %}
+      <div class="domain-row">
+        <a href="{% url 'learning:domain_detail' d.pk %}">{{ d.name }}</a>
+        <span class="muted">{{ d.done_topics }}/{{ d.total_topics }} topics</span>
+        {% include "partials/progress_bar.html" with value=d.percent %}
+      </div>
+    {% endfor %}
+  </section>
+{% endif %}
+
+<section class="card">
+  <h3>Resume</h3>
+  <p>{{ resume_info.resumes }} resume{{ resume_info.resumes|pluralize }} built &middot; {{ resume_info.uploads }} uploaded
+    {% if resume_info.last_review %}&middot; last review: <strong>{{ resume_info.last_review.score }}/100</strong> (indicative checklist){% endif %}
+    &middot; <a href="{% url 'resume_builder:list' %}">Open resume tools</a></p>
+</section>
+
+<section class="card">
+  <h3>Assessments</h3>
+  <p>Written average: <strong>{% if assess.written_avg is None %}–{% else %}{{ assess.written_avg }}%{% endif %}</strong> ({{ assess.written_count }} submitted)
+    &middot; Speaking average: <strong>{% if assess.speaking_avg is None %}–{% else %}{{ assess.speaking_avg }}%{% endif %}</strong> ({{ assess.speaking_count }} submitted)
+    &middot; <a href="{% url 'assessments:overview' %}">Open assessments</a></p>
+  <p>Aptitude average: <strong>{% if apt.avg is None %}–{% else %}{{ apt.avg }}%{% endif %}</strong> ({{ apt.attempts }} test{{ apt.attempts|pluralize }})
+    &middot; <a href="{% url 'aptitude:overview' %}">Practise aptitude</a></p>
+  <p>DSA problems solved: <strong>{{ dsa.solved }}/{{ dsa.total }}</strong> ({{ dsa.percent }}%)
+    &middot; <a href="{% url 'coding:list' %}">Open DSA practice</a></p>
+</section>
+
+{{ chart_data|json_script:"chart-data" }}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/vendor/chart.umd.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

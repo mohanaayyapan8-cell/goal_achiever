@@ -1,0 +1,82 @@
+{% extends "base_app.html" %}
+{% load content_extras %}
+{% block title %}{{ topic.name }} – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'learning:domain_list' %}">Learning</a> &rsaquo;
+  <a href="{% url 'learning:domain_detail' topic.technology.domain_id %}">{{ topic.technology.domain.name }}</a> &rsaquo;
+  <a href="{% url 'learning:technology_detail' topic.technology_id %}">{{ topic.technology.name }}</a> &rsaquo; {{ topic.name }}</p>
+
+<div class="page-header row-between">
+  <div>
+    <h1>{{ topic.name }}</h1>
+    <p class="muted">Topic {{ number }} of {{ count }} in {{ topic.technology.name }} &middot;
+      <span class="badge status-{{ topic.status }}">{% if topic.status == "completed" %}Completed{% elif topic.status == "in_progress" %}In progress{% else %}Not started{% endif %}</span></p>
+  </div>
+  <div class="actions">
+    {% if topic.status != "in_progress" and topic.status != "completed" %}
+      {% include "learning/_status_button.html" with topic=topic status="in_progress" label="Start" %}
+    {% endif %}
+    {% if topic.status != "completed" %}
+      {% include "learning/_status_button.html" with topic=topic status="completed" label="Mark completed" primary=True %}
+    {% else %}
+      {% include "learning/_status_button.html" with topic=topic status="not_started" label="Undo completion" %}
+    {% endif %}
+    <a class="btn btn-ghost" href="{% url 'assessments:topic_hub' topic.pk %}">Assessments</a>
+    <a class="btn btn-ghost" href="{% url 'planner:goal_create' %}?topic={{ topic.pk }}">Add to planner</a>
+    <a class="btn btn-ghost" href="{% url 'learning:content_edit' topic.pk %}">{% if content %}Edit lesson{% else %}Write lesson{% endif %}</a>
+  </div>
+</div>
+
+{% if sections %}
+  {% for label, text, is_code in sections %}
+    <section class="card lesson">
+      <h3>{{ label }}</h3>
+      {% if is_code %}<pre class="code"><code>{{ text }}</code></pre>{% else %}{{ text|rich_text }}{% endif %}
+    </section>
+  {% endfor %}
+{% else %}
+  <section class="card empty">
+    <h3>No lesson written for this topic yet</h3>
+    <p class="muted">Ready-made lessons are included for Python. For this topic you can write your own using the 10-part structure, and use the reading links below.</p>
+    <p><a class="btn" href="{% url 'learning:content_edit' topic.pk %}">Write lesson</a></p>
+  </section>
+{% endif %}
+
+<section class="card">
+  <h3>Read more (external)</h3>
+  <ul class="plain">
+    {% for label, url in references %}
+      <li><a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ label }}</a></li>
+    {% endfor %}
+  </ul>
+  <p class="muted"><small>Links open the sites&rsquo; main pages; search them for this topic.</small></p>
+</section>
+
+<section class="card" id="notes">
+  <h3>My notes</h3>
+  <form method="post" action="{% url 'learning:note_create' topic.pk %}">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=note_form %}
+    <button type="submit" class="btn">Save note</button>
+  </form>
+  {% for note in notes %}
+    <div class="note">
+      <div>{{ note.body|rich_text }}</div>
+      <div class="row-between">
+        <small class="muted">{{ note.updated_at|date:"d M Y, H:i" }}</small>
+        <span class="actions">
+          <a class="btn btn-small btn-ghost" href="{% url 'learning:note_update' note.pk %}">Edit</a>
+          <a class="btn btn-small btn-danger-ghost" href="{% url 'learning:note_delete' note.pk %}">Delete</a>
+        </span>
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">No notes yet.</p>
+  {% endfor %}
+</section>
+
+<div class="row-between">
+  {% if prev %}<a class="btn btn-ghost" href="{% url 'learning:topic_detail' prev.0 %}">&larr; {{ prev.1 }}</a>{% else %}<span></span>{% endif %}
+  {% if next %}<a class="btn btn-ghost" href="{% url 'learning:topic_detail' next.0 %}">{{ next.1 }} &rarr;</a>{% endif %}
+</div>
+{% endblock %}

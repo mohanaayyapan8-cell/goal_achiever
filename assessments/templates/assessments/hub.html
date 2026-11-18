@@ -1,0 +1,52 @@
+{% extends "base_app.html" %}
+{% load score_extras %}
+{% block title %}Assessments: {{ topic.name }} – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'assessments:overview' %}">Assessments</a> &rsaquo;
+  <a href="{% url 'learning:topic_detail' topic.pk %}">{{ topic.name }}</a></p>
+<div class="page-header">
+  <h1>{{ topic.name }} <small class="muted">· {{ topic.technology.name }}</small></h1>
+  <p class="muted">Two stages: a written test and a short English speaking answer. Their scores are kept separate.
+    {% if topic.status != "completed" %}You can try them any time, but they work best after you finish the topic.{% endif %}</p>
+</div>
+
+<section class="two-col">
+  <div class="card">
+    <h3>Stage 1: Written assessment</h3>
+    <p class="muted">Three questions: explain, write code, predict output or debug. Scored with a visible rubric.</p>
+    {% with w=summary.written %}
+      {% if w.latest %}<p>Latest score: <span class="pill {{ w.latest.score|score_class }}">{{ w.latest.score|floatformat:0 }}%</span>
+        &middot; best {{ w.best.score|floatformat:0 }}% &middot; {{ w.attempts }} attempt{{ w.attempts|pluralize }}</p>{% else %}<p class="muted">No submitted attempt yet.</p>{% endif %}
+      <form method="post" action="{% url 'assessments:written_start' topic.pk %}">{% csrf_token %}
+        <button class="btn" type="submit">{% if w.open %}Continue unfinished attempt{% elif w.latest %}Retake written test{% else %}Start written test{% endif %}</button>
+      </form>
+    {% endwith %}
+  </div>
+  <div class="card">
+    <h3>Stage 2: English speaking</h3>
+    <p class="muted">One spoken question. Speak (or type) your answer, edit the text, then submit.</p>
+    {% with s=summary.speaking %}
+      {% if s.latest %}<p>Latest score: <span class="pill {{ s.latest.answer.overall|score_class }}">{{ s.latest.answer.overall|floatformat:0 }}%</span>
+        &middot; best {{ s.best.answer.overall|floatformat:0 }}% &middot; {{ s.attempts }} attempt{{ s.attempts|pluralize }}</p>{% else %}<p class="muted">No submitted attempt yet.</p>{% endif %}
+      <form method="post" action="{% url 'assessments:speaking_start' topic.pk %}">{% csrf_token %}
+        <button class="btn" type="submit">{% if s.open %}Continue unfinished attempt{% elif s.latest %}Try again{% else %}Start speaking test{% endif %}</button>
+      </form>
+    {% endwith %}
+  </div>
+</section>
+
+<section class="card">
+  <h3>Previous attempts</h3>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Stage</th><th>Attempt</th><th>Date</th><th>Score</th><th></th></tr></thead>
+    <tbody>
+    {% for w in written_history %}<tr><td>Written</td><td>#{{ w.attempt_number }}</td><td>{{ w.submitted_at|date:"d M Y, H:i" }}</td>
+      <td><span class="pill {{ w.score|score_class }}">{{ w.score|floatformat:0 }}%</span></td>
+      <td><a href="{% url 'assessments:written_result' w.pk %}">Review answers</a></td></tr>{% endfor %}
+    {% for s in speaking_history %}<tr><td>Speaking</td><td>#{{ s.attempt_number }}</td><td>{{ s.submitted_at|date:"d M Y, H:i" }}</td>
+      <td><span class="pill {{ s.answer.overall|score_class }}">{{ s.answer.overall|floatformat:0 }}%</span></td>
+      <td><a href="{% url 'assessments:speaking_result' s.pk %}">Review answer</a></td></tr>{% endfor %}
+    {% if not written_history and not speaking_history %}<tr><td colspan="5" class="muted">Nothing submitted yet.</td></tr>{% endif %}
+    </tbody></table></div>
+</section>
+{% endblock %}

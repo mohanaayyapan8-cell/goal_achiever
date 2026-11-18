@@ -1,0 +1,42 @@
+{% extends "base_app.html" %}
+{% load static %}
+{% block title %}Written assessment – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'assessments:topic_hub' assessment.topic_id %}">&larr; {{ assessment.topic_name }}</a></p>
+<div class="page-header"><h1>Written assessment: {{ assessment.topic_name }}</h1>
+  <p class="muted">Attempt #{{ assessment.attempt_number }}. Your code is checked for syntax and patterns but is <strong>never run</strong>. Save a draft any time; after you submit, answers are locked.</p></div>
+
+<form method="post" id="written-form">
+  {% csrf_token %}
+  {% for item in items %}{% with a=item.a %}
+  <section class="card question">
+    <div class="row-between"><h3>Question {{ a.position }}</h3><span class="badge">{{ a.type_label }}</span></div>
+    <p class="q-prompt">{{ a.prompt }}</p>
+    {% if a.code_snippet %}<pre class="code"><code>{{ a.code_snippet }}</code></pre>{% endif %}
+
+    {% if a.question_type == "predict_output" %}
+      <label for="text_{{ a.pk }}">Your predicted output (exactly as printed)</label>
+      <textarea id="text_{{ a.pk }}" name="text_{{ a.pk }}" rows="4" class="form-control code-input" maxlength="5000">{{ a.answer_text }}</textarea>
+    {% else %}
+      {% if a.uses_code %}
+        <label for="code_{{ a.pk }}">{% if a.question_type == "debug" %}Fix the code here{% else %}Your code{% endif %}</label>
+        <textarea id="code_{{ a.pk }}" name="code_{{ a.pk }}" rows="9" class="form-control code-input" spellcheck="false" maxlength="10000" data-code>{{ item.code_value }}</textarea>
+      {% endif %}
+      {% if not a.uses_code or item.needs_explanation %}
+        <label for="text_{{ a.pk }}">{% if a.uses_code %}Your explanation{% else %}Your answer{% endif %}</label>
+        <textarea id="text_{{ a.pk }}" name="text_{{ a.pk }}" rows="{% if a.uses_code %}4{% else %}7{% endif %}" class="form-control" maxlength="5000">{{ a.answer_text }}</textarea>
+      {% else %}
+        <details><summary class="muted">Add an optional explanation</summary>
+          <textarea name="text_{{ a.pk }}" rows="3" class="form-control" maxlength="5000">{{ a.answer_text }}</textarea></details>
+      {% endif %}
+    {% endif %}
+  </section>
+  {% endwith %}{% endfor %}
+
+  <div class="actions sticky-actions">
+    <button type="submit" name="action" value="save" class="btn btn-ghost">Save draft</button>
+    <button type="submit" name="action" value="submit" class="btn" data-confirm="Submit your answers for scoring? You cannot edit them afterwards.">Submit for scoring</button>
+  </div>
+</form>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/written.js' %}"></script>{% endblock %}

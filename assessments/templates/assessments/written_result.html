@@ -1,0 +1,61 @@
+{% extends "base_app.html" %}
+{% load score_extras %}
+{% block title %}Written results – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'assessments:topic_hub' assessment.topic_id %}">&larr; {{ assessment.topic_name }}</a></p>
+<div class="page-header row-between">
+  <div><h1>Written results: {{ assessment.topic_name }}</h1>
+    <p class="muted">Attempt #{{ assessment.attempt_number }} &middot; {{ assessment.submitted_at|date:"d M Y, H:i" }}</p></div>
+  <div class="bigscore {{ assessment.score|score_class }}">{{ assessment.score|floatformat:0 }}%</div>
+</div>
+<div class="alert alert-info"><strong>How this is scored:</strong> a visible checklist (key ideas, code checks, answer length). It is an indicative score, not an expert marking. Always compare with the model answer below each question.</div>
+
+{% for a in answers %}
+<section class="card question" id="q{{ a.position }}">
+  <div class="row-between"><h3>Question {{ a.position }} <span class="badge">{{ a.type_label }}</span></h3>
+    <span class="pill {{ a.score|score_class }}">{{ a.score|floatformat:0 }}%</span></div>
+  <p class="q-prompt">{{ a.prompt }}</p>
+  {% if a.code_snippet %}<pre class="code"><code>{{ a.code_snippet }}</code></pre>{% endif %}
+
+  <h4>Your answer</h4>
+  {% if a.answer_code %}<pre class="code"><code>{{ a.answer_code }}</code></pre>{% endif %}
+  {% if a.answer_text %}<pre class="answer-text">{{ a.answer_text }}</pre>{% endif %}
+  {% if not a.answer_code and not a.answer_text %}<p class="muted">(no answer)</p>{% endif %}
+
+  <div class="criteria">
+    {% for key, value in a.criteria.items %}{% if value is not None %}
+      <span class="crit"><span class="muted">{{ key|criterion_label }}</span> <span class="pill {{ value|score_class }}">{{ value|floatformat:0 }}%</span></span>
+    {% endif %}{% endfor %}
+  </div>
+
+  {% for group, items in a.details|group_details %}
+    <h4>{{ group }}</h4>
+    <ul class="checks">{% for d in items %}<li class="{% if d.passed %}ok{% else %}no{% endif %}">{% if d.passed %}&#10003;{% else %}&#10007;{% endif %} {{ d.label }}</li>{% endfor %}</ul>
+  {% endfor %}
+
+  <h4>Feedback</h4>
+  <ul>{% for f in a.feedback %}<li>{{ f }}</li>{% endfor %}</ul>
+  {% if a.question_data.basic_only %}<p class="muted"><small>Basic checks only for this topic (topic words, length, structure). Compare your answer with your lesson to judge correctness.</small></p>{% endif %}
+
+  <details class="model"><summary>Show model answer</summary>
+    {% if a.question_type == "predict_output" %}<p>Expected output:</p><pre class="code"><code>{{ a.question_data.expected_output }}</code></pre>
+    {% else %}
+      {% if a.question_data.model_answer %}<p>{{ a.question_data.model_answer }}</p>{% endif %}
+      {% if a.question_data.model_code %}<pre class="code"><code>{{ a.question_data.model_code }}</code></pre>{% endif %}
+    {% endif %}
+  </details>
+
+  {% if a.ai_feedback %}
+    <div class="ai-box"><strong>AI feedback (experimental, not part of your score)</strong><p>{{ a.ai_feedback|linebreaksbr }}</p></div>
+  {% elif ai_enabled and a.question_type != "predict_output" %}
+    <form method="post" action="{% url 'assessments:written_ai' a.pk %}" class="inline-form">{% csrf_token %}
+      <button class="btn btn-small btn-ghost" type="submit" title="Sends this question and your answer to the Anthropic API">Get AI feedback</button></form>
+  {% endif %}
+</section>
+{% endfor %}
+
+<div class="actions">
+  <form method="post" action="{% url 'assessments:written_start' assessment.topic_id %}">{% csrf_token %}<button class="btn" type="submit">Retake written test</button></form>
+  <form method="post" action="{% url 'assessments:speaking_start' assessment.topic_id %}">{% csrf_token %}<button class="btn btn-ghost" type="submit">Go to Stage 2: speaking</button></form>
+</div>
+{% endblock %}

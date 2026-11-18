@@ -1,0 +1,10 @@
+{% extends "base_app.html" %}
+{% block title %}Resume reviews – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'resume_builder:list' %}">&larr; Resume</a></p>
+<div class="page-header"><h1>Resume reviews</h1><p class="muted">Indicative checklist scores. Run a review again after improving your resume to see progress.</p></div>
+<div class="card table-wrap"><table class="table"><thead><tr><th>Date</th><th>Resume</th><th>Type</th><th>Score</th><th></th></tr></thead><tbody>
+{% for rv in reviews %}<tr><td>{{ rv.created_at|date:"d M Y, H:i" }}</td><td>{{ rv.source_name }}</td><td>{{ rv.source_kind }}</td>
+  <td><span class="pill {% if rv.score >= 75 %}score-good{% elif rv.score >= 50 %}score-ok{% else %}score-low{% endif %}">{{ rv.score }}/100</span></td><td><a href="{% url 'resume_builder:review' rv.pk %}">Open</a></td></tr>
+{% empty %}<tr><td colspan="5" class="muted">No reviews yet.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

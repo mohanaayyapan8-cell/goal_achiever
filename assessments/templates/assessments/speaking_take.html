@@ -1,0 +1,39 @@
+{% extends "base_app.html" %}
+{% load static %}
+{% block title %}Speaking assessment – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'assessments:topic_hub' assessment.topic_id %}">&larr; {{ assessment.topic_name }}</a></p>
+<div class="page-header"><h1>Speaking assessment: {{ assessment.topic_name }}</h1>
+  <p class="muted">Attempt #{{ assessment.attempt_number }}. Aim for about {{ target }} words (30 to 60 seconds).</p></div>
+
+<form method="post" id="speaking-form">
+  {% csrf_token %}
+  <section class="card">
+    <h3>Your question</h3>
+    <p class="q-prompt big-q" id="question-text">{{ assessment.question_text }}</p>
+    <button type="button" id="btn-read" class="btn btn-ghost">&#128266; Read the question aloud</button>
+  </section>
+
+  <section class="card">
+    <h3>Answer</h3>
+    <p id="support-note" class="alert alert-info" hidden></p>
+    <div class="actions" id="speech-controls">
+      <label class="muted" for="lang">Language</label>
+      <select id="lang" class="form-control lang-select">
+        <option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option>
+      </select>
+      <button type="button" id="btn-start" class="btn">&#127908; Start speaking</button>
+      <button type="button" id="btn-stop" class="btn btn-danger" disabled>&#9632; Stop</button>
+      <span id="rec-status" class="muted" role="status" aria-live="polite">Ready</span>
+    </div>
+    <label for="final_text">Your answer (edit the text before submitting)</label>
+    <textarea id="final_text" name="final_text" rows="8" class="form-control" maxlength="4000" placeholder="Press Start speaking and talk, or type your answer here.">{{ initial }}</textarea>
+    <input type="hidden" name="raw_transcript" id="raw_transcript">
+    <input type="hidden" name="input_method" id="input_method" value="typed">
+    <input type="hidden" name="speaking_seconds" id="speaking_seconds" value="0">
+    <p class="muted"><small>Speech recognition runs in your browser (works best in Chrome or Edge). Chrome may send your audio to its speech service to produce the text. If it is not available, just type. Typing is always allowed.</small></p>
+    <p class="actions"><button type="submit" class="btn" data-confirm="Submit this answer for scoring? You cannot edit it afterwards.">Submit answer</button></p>
+  </section>
+</form>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/speaking.js' %}"></script>{% endblock %}

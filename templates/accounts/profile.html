@@ -1,0 +1,22 @@
+{% extends "base_app.html" %}
+{% block title %}Profile – Goal Achiever{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>{{ profile.display_name }}</h2>
+  <dl class="details">
+    <dt>Username</dt><dd>{{ user.username }}</dd>
+    <dt>Email</dt><dd>{{ user.email }}</dd>
+    <dt>College / University</dt><dd>{{ profile.college|default:"—" }}</dd>
+    <dt>Target role</dt><dd>{{ profile.target_role|default:"—" }}</dd>
+    <dt>About</dt><dd>{{ profile.bio|default:"—" }}</dd>
+    <dt>Timezone</dt><dd>{{ profile.timezone }}</dd>
+    <dt>Daily reminder time</dt><dd>{{ profile.daily_reminder_time|time:"H:i"|default:"Not set" }}</dd>
+    <dt>Email reminders</dt><dd>{% if profile.email_reminders %}On{% else %}Off{% endif %}</dd>
+    <dt>Member since</dt><dd>{{ user.date_joined|date:"d M Y" }}</dd>
+  </dl>
+  <p class="actions">
+    <a class="btn" href="{% url 'accounts:profile_edit' %}">Edit profile</a>
+    <a class="btn btn-ghost" href="{% url 'accounts:password_change' %}">Change password</a>
+  </p>
+</div>
+{% endblock %}

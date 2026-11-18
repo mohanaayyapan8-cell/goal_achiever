@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Goal Achiever – Learning &amp; Placement Preparation{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>GOAL ACHIEVER</h1>
+  <p class="lead">Your personal learning and placement-preparation platform.
+     40 days. One streak. Every day counts.</p>
+  <p class="actions">
+    <a class="btn" href="{% url 'accounts:register' %}">Create your account</a>
+    <a class="btn btn-ghost" href="{% url 'accounts:login' %}">Log in</a>
+  </p>
+</section>
+
+<section class="card">
+  <h2>Build roadmap</h2>
+  <ul class="phase-list">
+    {% for number, title, status in phases %}
+      <li class="phase phase-{{ status }}">
+        <strong>{{ number }}</strong>
+        <span>{{ title }}</span>
+        <span class="badge badge-{{ status }}">
+          {% if status == "done" %}Done{% elif status == "next" %}Next{% else %}Planned{% endif %}
+        </span>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="grid">
+  <div class="card"><h3>Learn</h3><p>Domains, technologies, topics and notes.</p></div>
+  <div class="card"><h3>Plan</h3><p>A 40-day planner with rescheduling.</p></div>
+  <div class="card"><h3>Assess</h3><p>Written and speaking checks for every topic.</p></div>
+  <div class="card"><h3>Stay consistent</h3><p>Streaks, badges and reminders.</p></div>
+</section>
+{% endblock %}

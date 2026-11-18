@@ -1,0 +1,73 @@
+{% extends "base_app.html" %}
+{% block title %}Streaks – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Streaks &amp; consistency</h1></div>
+
+<div class="card streak-card state-{{ status.state }}">
+  <div class="row-between">
+    <div><span class="flame">&#128293;</span> <span class="big">{{ stats.streak }}</span> <span class="muted">day streak</span></div>
+    <div class="muted">Longest streak: <strong>{{ stats.longest }}</strong></div>
+  </div>
+  <p class="streak-msg">{{ status.message }}</p>
+  {% include "streaks/_checklist.html" with progress=status.progress %}
+</div>
+
+<section class="stat-grid">
+  <div class="stat"><span class="stat-num">{{ stats.streak }}</span><span class="stat-label">Current streak</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.longest }}</span><span class="stat-label">Longest streak</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.active_days }}</span><span class="stat-label">Active learning days</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.completed_days }}</span><span class="stat-label">Fully completed days</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.goals_done }}</span><span class="stat-label">Goals completed</span></div>
+  <div class="stat"><span class="stat-num">{% if stats.weekly.percent is None %}–{% else %}{{ stats.weekly.percent }}%{% endif %}</span><span class="stat-label">Weekly consistency ({{ stats.weekly.completed }}/{{ stats.weekly.days }} days)</span></div>
+</section>
+
+<section class="card">
+  <div class="row-between"><h3>{{ month_label }}</h3>
+    <span class="actions"><a class="btn btn-small btn-ghost" href="?month={{ prev_month }}">&larr; Previous</a>
+      {% if not is_current_month %}<a class="btn btn-small btn-ghost" href="{% url 'streaks:overview' %}">This month</a>{% endif %}
+      <a class="btn btn-small btn-ghost" href="?month={{ next_month }}">Next &rarr;</a></span></div>
+  <div class="table-wrap"><table class="heatmap">
+    <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
+    <tbody>{% for week in weeks %}<tr>{% for c in week %}
+      {% if c %}<td class="hm hm-{{ c.state }} {% if c.is_today %}hm-is-today{% endif %}" title="{{ c.date|date:'d M Y' }}: {% if c.state == 'completed' %}completed{% elif c.state == 'missed' %}missed{% elif c.state == 'partial' %}some activity{% elif c.state == 'today' %}today{% elif c.state == 'upcoming' %}upcoming{% else %}no challenge day{% endif %}">{{ c.number }}</td>
+      {% else %}<td class="hm-blank"></td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+  <p class="legend muted"><span class="dot hm-completed"></span> completed &nbsp; <span class="dot hm-missed"></span> missed &nbsp;
+    <span class="dot hm-partial"></span> some activity &nbsp; <span class="dot hm-upcoming"></span> upcoming &nbsp; <span class="dot hm-today"></span> today</p>
+</section>
+
+<section class="card">
+  <h3>Badges <span class="muted">({{ earned_count }}/{{ badges|length }})</span></h3>
+  <div class="badge-grid">
+    {% for item in badges %}
+      <div class="badge-card {% if item.ach %}earned{% else %}locked{% endif %}">
+        <span class="badge-icon">{{ item.badge.icon }}</span>
+        <strong>{{ item.badge.title }}</strong>
+        <small class="muted">{{ item.badge.description }}</small>
+        {% if item.ach %}<small class="score-good">Earned {{ item.ach.awarded_at|date:"d M Y" }}</small>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <h3>How streaks work</h3>
+  <ul>
+    <li>A day counts when <strong>all its goals are done</strong> and you submitted <strong>both assessments</strong> (written and speaking) that day, in your local time ({{ request.user.profile.timezone }}).</li>
+    <li>Each completed day adds 1 to your streak.</li>
+    <li>Missing <strong>one</strong> day interrupts your streak (a warning shows), but you keep it. Complete the next day to continue.</li>
+    <li>Missing <strong>two days in a row</strong> resets your current streak to 0. Your history, badges and longest streak are never deleted.</li>
+  </ul>
+</section>
+
+<section class="card"><h3>Recent days</h3>
+  <div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Day</th><th>Result</th><th>Goals</th><th>Written</th><th>Speaking</th><th>Streak</th></tr></thead><tbody>
+  {% for r in history %}<tr><td>{{ r.date|date:"d M Y" }}</td><td>{{ r.day_number|default:"–" }}</td>
+    <td><span class="pill {% if r.status == 'completed' %}score-good{% else %}score-low{% endif %}">{{ r.get_status_display }}</span></td>
+    <td>{% if r.status == "completed" %}{{ r.goals_done }}/{{ r.goals_total }}{% else %}–{% endif %}</td>
+    <td>{% if r.status == "completed" %}{{ r.written_count }}{% else %}–{% endif %}</td><td>{% if r.status == "completed" %}{{ r.speaking_count }}{% else %}–{% endif %}</td>
+    <td>{{ r.streak_after }}</td></tr>
+  {% empty %}<tr><td colspan="7" class="muted">History appears as days are settled.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

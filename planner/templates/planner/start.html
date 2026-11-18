@@ -1,0 +1,22 @@
+{% extends "base_app.html" %}
+{% block title %}40-day challenge – Goal Achiever{% endblock %}
+{% block content %}
+<div class="card narrow">
+  {% if mode == "start" %}
+    <h2>Start your 40-day challenge</h2>
+    <p>Pick the date of Day 1. Forty days are created for you, and you can add goals to each of them.</p>
+    <form method="post" action="{% url 'planner:start' %}" novalidate>
+  {% else %}
+    <h2>Change the start date</h2>
+    <p class="muted">All goals stay on their day numbers; only the calendar dates move.</p>
+    <form method="post" action="{% url 'planner:change_start_date' %}" novalidate>
+  {% endif %}
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions">
+      <button type="submit" class="btn">{% if mode == "start" %}Start challenge{% else %}Save date{% endif %}</button>
+      {% if mode == "change" %}<a class="btn btn-ghost" href="{% url 'planner:overview' %}">Cancel</a>{% endif %}
+    </p>
+  </form>
+</div>
+{% endblock %}

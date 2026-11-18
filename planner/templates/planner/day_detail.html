@@ -1,0 +1,61 @@
+{% extends "base_app.html" %}
+{% block title %}Day {{ plan.day_number }} – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'planner:overview' %}">Planner</a> &rsaquo; Day {{ plan.day_number }}</p>
+<div class="page-header row-between">
+  <div>
+    <h1>Day {{ plan.day_number }} <small class="muted">&middot; {{ plan.date|date:"l, d F Y" }}</small>
+      {% if is_today %}<span class="badge status-in_progress">Today</span>{% endif %}</h1>
+    {% if plan.title %}<p class="lead">{{ plan.title }}</p>{% endif %}
+  </div>
+  <div class="actions">
+    {% if has_prev %}<a class="btn btn-ghost" href="{% url 'planner:day_detail' plan.day_number|add:'-1' %}">&larr; Day {{ plan.day_number|add:"-1" }}</a>{% endif %}
+    {% if has_next %}<a class="btn btn-ghost" href="{% url 'planner:day_detail' plan.day_number|add:'1' %}">Day {{ plan.day_number|add:"1" }} &rarr;</a>{% endif %}
+  </div>
+</div>
+
+{% if state == "incomplete" %}
+  <div class="alert alert-warning">This day is over and has unfinished goals. Complete them, or use <strong>Move</strong> to reschedule.</div>
+{% endif %}
+
+<section class="card">
+  <div class="row-between">
+    <h3>Goals: {{ done }}/{{ total }} completed ({{ percent }}%)</h3>
+    <a class="btn" href="{% url 'planner:goal_create' %}?day={{ plan.day_number }}">+ Add goal</a>
+  </div>
+  <p class="muted">{{ done_minutes }} of {{ planned_minutes }} planned minutes done.</p>
+  {% include "partials/progress_bar.html" with value=percent %}
+
+  {% for g in goals %}
+    <div class="goal-row {% if g.is_completed %}goal-done{% endif %}">
+      <form method="post" action="{% url 'planner:goal_toggle' g.pk %}" class="inline-form">{% csrf_token %}
+        <button type="submit" class="check {% if g.is_completed %}checked{% endif %}"
+                aria-label="{% if g.is_completed %}Mark as not done{% else %}Mark as done{% endif %}">{% if g.is_completed %}&#10003;{% endif %}</button>
+      </form>
+      <div class="goal-text">
+        <strong>{{ g.title }}</strong>
+        <small class="muted">{{ g.estimated_minutes }} min
+          {% if g.topic %}&middot; <a href="{% url 'learning:topic_detail' g.topic_id %}">open lesson</a> &middot; <a href="{% url 'assessments:topic_hub' g.topic_id %}">assessments</a>{% endif %}
+          {% if g.rescheduled_from %}&middot; <span class="badge status-in_progress">moved from Day {{ g.rescheduled_from.day_number }}{% if g.reschedule_count > 1 %} ({{ g.reschedule_count }}×){% endif %}</span>{% endif %}
+          {% if g.is_completed %}&middot; done {{ g.completed_at|date:"d M, H:i" }}{% endif %}</small>
+      </div>
+      <div class="actions">
+        {% if not g.is_completed %}<a class="btn btn-small btn-ghost" href="{% url 'planner:goal_reschedule' g.pk %}">Move</a>{% endif %}
+        <a class="btn btn-small btn-ghost" href="{% url 'planner:goal_update' g.pk %}">Edit</a>
+        <a class="btn btn-small btn-danger-ghost" href="{% url 'planner:goal_delete' g.pk %}">Delete</a>
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">No goals on this day yet. Use <strong>+ Add goal</strong> or <a href="{% url 'planner:auto_schedule' %}">auto-schedule a technology</a>.</p>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h3>Focus of the day</h3>
+  <form method="post" action="{% url 'planner:day_title' plan.day_number %}" class="row-between" style="align-items:flex-end">
+    {% csrf_token %}
+    <div style="flex:1; min-width:220px">{{ title_form.title }}</div>
+    <button class="btn" type="submit">Save</button>
+  </form>
+</section>
+{% endblock %}

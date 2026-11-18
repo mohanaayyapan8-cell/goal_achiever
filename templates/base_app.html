@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{# Layout for logged-in pages: sidebar on the left, page on the right. #}
+{% block main %}
+<div class="app-shell">
+  {% include "partials/sidebar.html" %}
+  <main class="app-main">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

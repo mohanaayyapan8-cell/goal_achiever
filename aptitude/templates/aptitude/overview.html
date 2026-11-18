@@ -1,0 +1,48 @@
+{% extends "base_app.html" %}
+{% load static score_extras %}
+{% block title %}Aptitude practice – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Aptitude practice</h1>
+  <p class="muted">Timed multiple-choice tests with explanations. Pick a section, optionally one topic, and start.</p></div>
+
+{% if open_attempt %}
+<div class="alert alert-warning">You have a test in progress ({{ open_attempt.label }}).
+  <a class="btn btn-small" href="{% url 'aptitude:attempt' open_attempt.pk %}">Continue test</a></div>
+{% endif %}
+
+<section class="stat-grid">
+  <div class="stat"><span class="stat-num">{{ overall.attempts }}</span><span class="stat-label">Tests submitted</span></div>
+  <div class="stat"><span class="stat-num">{% if overall.avg is None %}–{% else %}{{ overall.avg }}%{% endif %}</span><span class="stat-label">Average score</span></div>
+</section>
+
+{% for s in sections %}
+<section class="card">
+  <div class="row-between"><h3>{{ s.title }}</h3>
+    <span class="muted">{{ s.stats.attempts }} test{{ s.stats.attempts|pluralize }} &middot; average {% if s.stats.avg is None %}–{% else %}{{ s.stats.avg }}%{% endif %} &middot; best {% if s.stats.best is None %}–{% else %}{{ s.stats.best }}%{% endif %}</span></div>
+  <form method="post" action="{% url 'aptitude:start' %}" class="start-form">
+    {% csrf_token %}
+    <input type="hidden" name="section" value="{{ s.key }}">
+    <label>Topic
+      <select name="topic" class="form-control"><option value="">All topics</option>
+        {% for t in s.topics %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select></label>
+    <label>Questions
+      <select name="count" class="form-control">{% for c in count_choices %}<option value="{{ c }}" {% if c == 10 %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+    <label>Time limit
+      <select name="minutes" class="form-control"><option value="">Automatic (about 1 min per question)</option>
+        {% for m in minute_choices %}<option value="{{ m }}">{{ m }} minutes</option>{% endfor %}</select></label>
+    <button class="btn" type="submit">Start test</button>
+  </form>
+</section>
+{% endfor %}
+
+<section class="two-col">
+  <div class="card"><h3>Recent tests</h3>
+    {% for a in recent %}<p class="list-row"><a href="{% url 'aptitude:attempt' a.pk %}">{{ a.label }}</a>
+      <span class="pill {{ a.percent|score_class }}">{{ a.correct_count }}/{{ a.total_count }}</span></p>
+    {% empty %}<p class="muted">No tests yet.</p>{% endfor %}
+    {% if recent %}<p><a href="{% url 'aptitude:history' %}">See full history</a></p>{% endif %}</div>
+  <div class="card"><h3>Topics to practise</h3>
+    {% for sec, topic, c, n, pct in weakest %}<p class="list-row"><span>{{ topic }}</span><span class="pill {{ pct|score_class }}">{{ pct }}% ({{ c }}/{{ n }})</span></p>
+    {% empty %}<p class="muted">Your weakest topics appear here after a few tests (needs at least 3 answered questions per topic).</p>{% endfor %}</div>
+</section>
+{% endblock %}

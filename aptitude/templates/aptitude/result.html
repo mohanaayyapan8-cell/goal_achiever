@@ -1,0 +1,37 @@
+{% extends "base_app.html" %}
+{% load score_extras %}
+{% block title %}Aptitude results – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'aptitude:overview' %}">Aptitude</a> &rsaquo; results</p>
+<div class="page-header row-between">
+  <div><h1>{{ attempt.label }}</h1>
+    <p class="muted">{{ attempt.submitted_at|date:"d M Y, H:i" }} &middot; {{ minutes_used }} of {{ attempt.time_limit_seconds|floatformat:"0" }} s limit used
+      {% if attempt.timed_out %}&middot; <strong>time ran out</strong>{% endif %}</p>
+    <p>{{ attempt.correct_count }} correct &middot; {{ rows|length|add:"0" }} questions &middot; {{ unanswered }} unanswered</p></div>
+  <div class="bigscore {{ attempt.percent|score_class }}">{{ attempt.percent|floatformat:0 }}%</div>
+</div>
+
+<section class="card"><h3>By topic</h3>
+  <div class="table-wrap"><table class="table"><thead><tr><th>Topic</th><th>Correct</th><th>Accuracy</th></tr></thead><tbody>
+  {% for t in topic_rows %}<tr><td>{{ t.topic }}</td><td>{{ t.correct }}/{{ t.total }}</td><td><span class="pill {{ t.percent|score_class }}">{{ t.percent }}%</span></td></tr>{% endfor %}
+  </tbody></table></div></section>
+
+{% for r in rows %}
+<section class="card question result-{{ r.state }}">
+  <div class="row-between"><h3>Question {{ r.n }}</h3>
+    <span class="pill {% if r.state == 'correct' %}score-good{% elif r.state == 'wrong' %}score-low{% else %}score-none{% endif %}">{% if r.state == "correct" %}Correct{% elif r.state == "wrong" %}Wrong{% else %}Not answered{% endif %}</span></div>
+  {% if r.q.passage %}<div class="passage"><strong>Passage</strong><p>{{ r.q.passage }}</p></div>{% endif %}
+  <p class="q-prompt" style="white-space: pre-line">{{ r.q.stem }}</p>
+  <ul class="checks">
+    {% for opt in r.q.options %}
+      <li class="{% if forloop.counter0 == r.q.correct %}ok{% elif forloop.counter0 == r.chosen %}no{% endif %}">
+        {% if forloop.counter0 == r.q.correct %}&#10003;{% elif forloop.counter0 == r.chosen %}&#10007;{% else %}&nbsp;&nbsp;{% endif %} {{ opt }}
+        {% if forloop.counter0 == r.chosen %}<em class="muted">(your answer)</em>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  <p><strong>Explanation:</strong> {{ r.q.explanation }}</p>
+</section>
+{% endfor %}
+<div class="actions"><a class="btn" href="{% url 'aptitude:overview' %}">Practice more</a>
+  <a class="btn btn-ghost" href="{% url 'aptitude:history' %}">Test history</a></div>
+{% endblock %}

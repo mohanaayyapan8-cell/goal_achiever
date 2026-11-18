@@ -1,0 +1,41 @@
+{% extends "base_app.html" %}
+{% block title %}Resume – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header row-between"><div><h1>Resume &amp; professional profile</h1>
+  <p class="muted">Build an ATS-friendly resume, export a PDF, and check any resume against a job description.</p></div>
+  <div class="actions"><a class="btn" href="{% url 'resume_builder:create' %}">+ New resume</a>
+    <a class="btn btn-ghost" href="{% url 'resume_builder:ats_guide' %}">ATS checklist guide</a></div></div>
+
+<section class="card"><h3>My resumes <span class="muted">({{ resumes|length }}/{{ max_resumes }})</span></h3>
+  {% for r in resumes %}
+    <div class="domain-row">
+      <div class="row-between"><a href="{% url 'resume_builder:editor' r.pk %}"><strong>{{ r.title }}</strong></a>
+        <span class="actions">
+          <a class="btn btn-small btn-ghost" href="{% url 'resume_builder:preview' r.pk %}">Preview</a>
+          <a class="btn btn-small btn-ghost" href="{% url 'resume_builder:pdf' r.pk %}">Download PDF</a>
+          <a class="btn btn-small" href="{% url 'resume_builder:review_resume' r.pk %}">ATS review</a></span></div>
+      <span class="muted">{{ r.full_name }}{% if r.headline %} · {{ r.headline }}{% endif %} · {{ r.percent }}% complete · updated {{ r.updated_at|date:"d M Y" }}</span>
+      {% include "partials/progress_bar.html" with value=r.percent %}
+    </div>
+  {% empty %}<p class="muted">No resume yet. Press <strong>+ New resume</strong>: your name and email are filled in for you.</p>{% endfor %}
+</section>
+
+<section class="card"><h3>Uploaded resumes <span class="muted">({{ uploads|length }}/{{ max_uploads }})</span></h3>
+  <p class="muted"><small>&#128274; Private: only you can download these files. They are never public.</small></p>
+  {% for u in uploads %}
+    <p class="list-row"><span>{{ u.original_name }} <span class="muted">· {{ u.get_kind_display }} · {{ u.size|filesizeformat }} · {{ u.uploaded_at|date:"d M Y" }}</span></span>
+      <span class="actions"><a class="btn btn-small" href="{% url 'resume_builder:upload_review' u.pk %}">ATS review</a>
+        <a class="btn btn-small btn-ghost" href="{% url 'resume_builder:upload_download' u.pk %}">Download</a>
+        <a class="btn btn-small btn-danger-ghost" href="{% url 'resume_builder:upload_delete' u.pk %}">Delete</a></span></p>
+  {% empty %}<p class="muted">Nothing uploaded.</p>{% endfor %}
+  <p><a class="btn btn-ghost" href="{% url 'resume_builder:upload_create' %}">Upload a resume to review</a></p>
+</section>
+
+<section class="card"><h3>Recent reviews</h3>
+  {% for rv in reviews %}<p class="list-row"><a href="{% url 'resume_builder:review' rv.pk %}">{{ rv.source_name }}</a>
+    <span>{{ rv.created_at|date:"d M" }} · <span class="pill {% if rv.score >= 75 %}score-good{% elif rv.score >= 50 %}score-ok{% else %}score-low{% endif %}">{{ rv.score }}/100</span></span></p>
+  {% empty %}<p class="muted">No reviews yet.</p>{% endfor %}
+  {% if reviews %}<p><a href="{% url 'resume_builder:reviews' %}">All reviews</a></p>{% endif %}
+  <p class="muted"><small>Review scores are an indicative checklist, not an ATS score.</small></p>
+</section>
+{% endblock %}

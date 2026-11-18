@@ -1,0 +1,31 @@
+{% extends "base_app.html" %}
+{% load score_extras %}
+{% block title %}Assessments – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Assessments</h1>
+  <p class="muted">Written and speaking scores are tracked separately.</p></div>
+
+<section class="stat-grid">
+  <div class="stat"><span class="stat-num">{% if stats.written_avg is None %}–{% else %}{{ stats.written_avg }}%{% endif %}</span><span class="stat-label">Written average ({{ stats.written_count }} submitted)</span></div>
+  <div class="stat"><span class="stat-num">{% if stats.speaking_avg is None %}–{% else %}{{ stats.speaking_avg }}%{% endif %}</span><span class="stat-label">Speaking average ({{ stats.speaking_count }} submitted)</span></div>
+</section>
+
+<section class="card">
+  <h3>Completed topics waiting for an assessment</h3>
+  {% for t in ready %}
+    <p class="list-row"><span>{{ t.name }} <span class="muted">· {{ t.technology.name }}</span></span>
+      <a class="btn btn-small" href="{% url 'assessments:topic_hub' t.pk %}">Assess</a></p>
+  {% empty %}<p class="muted">Nothing waiting. Finish topics in <a href="{% url 'learning:domain_list' %}">Learning</a>, then assess them here.</p>{% endfor %}
+</section>
+
+<section class="two-col">
+  <div class="card"><h3>Recent written attempts</h3>
+    {% for w in written %}<p class="list-row"><a href="{% url 'assessments:written_result' w.pk %}">{{ w.topic_name }} #{{ w.attempt_number }}</a>
+      <span class="pill {{ w.score|score_class }}">{{ w.score|floatformat:0 }}%</span></p>
+    {% empty %}<p class="muted">None yet.</p>{% endfor %}</div>
+  <div class="card"><h3>Recent speaking attempts</h3>
+    {% for s in speaking %}<p class="list-row"><a href="{% url 'assessments:speaking_result' s.pk %}">{{ s.topic_name }} #{{ s.attempt_number }}</a>
+      <span class="pill {{ s.answer.overall|score_class }}">{{ s.answer.overall|floatformat:0 }}%</span></p>
+    {% empty %}<p class="muted">None yet.</p>{% endfor %}</div>
+</section>
+{% endblock %}

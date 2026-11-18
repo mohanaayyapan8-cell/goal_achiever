@@ -1,0 +1,18 @@
+{% with ns=request.resolver_match.namespace url=request.resolver_match.url_name %}
+<aside class="sidebar" aria-label="Main navigation">
+  <nav>
+    <a class="side-link {% if ns == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:index' %}">&#128200; Dashboard</a>
+    <a class="side-link {% if ns == 'learning' %}active{% endif %}" href="{% url 'learning:domain_list' %}">&#128218; Learning</a>
+    <a class="side-link {% if ns == 'planner' %}active{% endif %}" href="{% url 'planner:overview' %}">&#128197; 40-day planner</a>
+    <a class="side-link {% if ns == 'assessments' %}active{% endif %}" href="{% url 'assessments:overview' %}">&#9997;&#65039; Assessments</a>
+    <a class="side-link {% if ns == 'aptitude' %}active{% endif %}" href="{% url 'aptitude:overview' %}">&#129518; Aptitude</a>
+    <a class="side-link {% if ns == 'coding' %}active{% endif %}" href="{% url 'coding:list' %}">&#128187; DSA practice</a>
+    <a class="side-link {% if ns == 'resume_builder' %}active{% endif %}" href="{% url 'resume_builder:list' %}">&#128196; Resume</a>
+    <a class="side-link {% if ns == 'streaks' %}active{% endif %}" href="{% url 'streaks:overview' %}">&#128293; Streaks</a>
+    <a class="side-link {% if ns == 'notifications' %}active{% endif %}" href="{% url 'notifications:list' %}">&#128276; Notifications</a>
+    <a class="side-link {% if ns == 'accounts' %}active{% endif %}" href="{% url 'accounts:profile' %}">&#128100; Profile</a>
+    <p class="side-heading">Coming soon</p>
+    <span class="side-link disabled">&#128202; Analytics <em>Ph 9</em></span>
+  </nav>
+</aside>
+{% endwith %}

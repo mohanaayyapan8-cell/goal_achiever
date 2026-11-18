@@ -1,0 +1,16 @@
+{% extends "base_app.html" %}
+{% load score_extras %}
+{% block title %}Aptitude history – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'aptitude:overview' %}">Aptitude</a> &rsaquo; history</p>
+<div class="page-header row-between"><h1>Test history</h1>
+  <div class="actions"><a class="btn btn-small {% if not section %}{% else %}btn-ghost{% endif %}" href="{% url 'aptitude:history' %}">All</a>
+    {% for key, title in sections %}<a class="btn btn-small {% if section == key %}{% else %}btn-ghost{% endif %}" href="?section={{ key }}">{{ title }}</a>{% endfor %}</div></div>
+<div class="card table-wrap"><table class="table">
+  <thead><tr><th>Date</th><th>Test</th><th>Score</th><th>Time used</th><th></th></tr></thead><tbody>
+  {% for a in attempts %}<tr><td>{{ a.submitted_at|date:"d M Y, H:i" }}</td><td>{{ a.label }}</td>
+    <td><span class="pill {{ a.percent|score_class }}">{{ a.correct_count }}/{{ a.total_count }} ({{ a.percent|floatformat:0 }}%)</span></td>
+    <td>{{ a.seconds_used }} s{% if a.timed_out %} (timed out){% endif %}</td><td><a href="{% url 'aptitude:attempt' a.pk %}">Review</a></td></tr>
+  {% empty %}<tr><td colspan="5" class="muted">No submitted tests yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

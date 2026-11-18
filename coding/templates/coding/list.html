@@ -1,0 +1,40 @@
+{% extends "base_app.html" %}
+{% load score_extras %}
+{% block title %}DSA practice – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header"><h1>DSA practice</h1>
+  <p class="muted">Beginner-friendly Python problems in the style of LeetCode. Start with the Easy ones.</p></div>
+
+<section class="stat-grid">
+  <div class="stat"><span class="stat-num">{{ progress.solved }}<small>/{{ progress.total }}</small></span><span class="stat-label">Problems solved ({{ progress.percent }}%)</span></div>
+  <div class="stat"><span class="stat-num">{{ progress.difficulties.easy.solved }}<small>/{{ progress.difficulties.easy.total }}</small></span><span class="stat-label">Easy</span></div>
+  <div class="stat"><span class="stat-num">{{ progress.difficulties.medium.solved }}<small>/{{ progress.difficulties.medium.total }}</small></span><span class="stat-label">Medium</span></div>
+  <div class="stat"><span class="stat-num">{{ progress.difficulties.hard.solved }}<small>/{{ progress.difficulties.hard.total }}</small></span><span class="stat-label">Hard</span></div>
+</section>
+
+<section class="card"><h3>Topic-wise completion</h3>
+  {% for c in progress.categories %}
+    <div class="domain-row"><a href="?category={{ c.name|urlencode }}">{{ c.name }}</a> <span class="muted">{{ c.solved }}/{{ c.total }} solved ({{ c.percent }}%)</span>
+      {% include "partials/progress_bar.html" with value=c.percent %}</div>
+  {% endfor %}</section>
+
+<section class="card">
+  <form method="get" class="filters">
+    <label>Topic <select name="category" class="form-control"><option value="">All</option>{% for c in categories %}<option value="{{ c }}" {% if c == f_category %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+    <label>Difficulty <select name="difficulty" class="form-control"><option value="">All</option>{% for k, v in difficulty_choices %}<option value="{{ k }}" {% if k == f_difficulty %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
+    <label>Status <select name="status" class="form-control"><option value="">All</option>
+      <option value="todo" {% if f_status == "todo" %}selected{% endif %}>Not started</option>
+      <option value="attempted" {% if f_status == "attempted" %}selected{% endif %}>Attempted</option>
+      <option value="solved" {% if f_status == "solved" %}selected{% endif %}>Solved</option></select></label>
+    <button class="btn" type="submit">Filter</button> <a class="btn btn-ghost" href="{% url 'coding:list' %}">Reset</a>
+  </form>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th></th><th>Title</th><th>Topic</th><th>Difficulty</th></tr></thead><tbody>
+    {% for r in rows %}<tr>
+      <td>{% if r.state == "solved" %}<span class="score-good" title="Solved">&#10003;</span>{% elif r.state == "attempted" %}<span class="score-ok" title="Attempted">&#9679;</span>{% endif %}</td>
+      <td><a href="{% url 'coding:detail' r.p.slug %}">{{ r.p.title }}</a></td><td>{{ r.p.category }}</td>
+      <td><span class="badge diff-{{ r.p.difficulty }}">{{ r.p.get_difficulty_display }}</span></td></tr>
+    {% empty %}<tr><td colspan="4" class="muted">No problems match these filters.</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+{% endblock %}

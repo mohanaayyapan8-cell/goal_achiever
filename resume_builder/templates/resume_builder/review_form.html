@@ -1,0 +1,14 @@
+{% extends "base_app.html" %}
+{% block title %}ATS review – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'resume_builder:list' %}">&larr; Resume</a></p>
+<div class="card narrow">
+  <h2>ATS checklist review</h2>
+  <p>Reviewing: <strong>{{ source }}</strong></p>
+  <div class="alert alert-info">This gives an <strong>indicative checklist score</strong>, not a real ATS score. It checks headings, contact details, formatting, bullet quality, keywords and writing, and shows every reason. Your text is analysed on this server only; nothing is sent elsewhere.</div>
+  <form method="post" novalidate>{% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions"><button type="submit" class="btn">Run review</button><a class="btn btn-ghost" href="{% url 'resume_builder:list' %}">Cancel</a></p>
+  </form>
+</div>
+{% endblock %}

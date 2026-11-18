@@ -1,0 +1,84 @@
+{% extends "base_app.html" %}
+{% block title %}Planner – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header row-between">
+  <div>
+    <h1>40-day planner</h1>
+    <p class="muted">{{ summary.start|date:"d M Y" }} &rarr; {{ summary.end|date:"d M Y" }}
+      {% if summary.phase == "running" %}&middot; <strong>Day {{ summary.current_day }} of 40</strong>
+      {% elif summary.phase == "not_started" %}&middot; starts in the future
+      {% else %}&middot; challenge finished{% endif %}</p>
+  </div>
+  <div class="actions">
+    {% if today_plan %}<a class="btn" href="{% url 'planner:day_detail' today_plan.day_number %}">Today&rsquo;s tasks</a>{% endif %}
+    <a class="btn btn-ghost" href="{% url 'planner:goal_create' %}">+ Add goal</a>
+    <a class="btn btn-ghost" href="{% url 'planner:auto_schedule' %}">Auto-schedule topics</a>
+    <a class="btn btn-ghost" href="{% url 'planner:change_start_date' %}">Change start date</a>
+  </div>
+</div>
+
+<section class="stat-grid">
+  <div class="stat"><span class="stat-num">{{ summary.goal_percent }}%</span><span class="stat-label">Goals completed</span></div>
+  <div class="stat"><span class="stat-num">{{ summary.goals_done }}<small>/{{ summary.goals_total }}</small></span><span class="stat-label">Goals done</span></div>
+  <div class="stat"><span class="stat-num">{{ summary.days_fully_done }}<small>/40</small></span><span class="stat-label">Days fully completed</span></div>
+  <div class="stat"><span class="stat-num">{{ summary.hours_done }}h</span><span class="stat-label">Study time of completed goals</span></div>
+</section>
+
+{% if overdue %}
+<section class="card warn-card">
+  <h3>&#9888;&#65039; Unfinished goals ({{ overdue|length }})</h3>
+  <p class="muted">These goals were not completed on their day. They are kept here until you finish or move them.</p>
+  {% for g in overdue %}
+    <div class="goal-row">
+      <div>
+        <strong>{{ g.title }}</strong>
+        <small class="muted">Day {{ g.plan.day_number }} &middot; {{ g.plan.date|date:"d M" }} &middot; {{ g.estimated_minutes }} min</small>
+      </div>
+      <div class="actions">
+        {% if today_plan and today_plan.pk != g.plan_id %}
+          <form method="post" action="{% url 'planner:goal_reschedule' g.pk %}" class="inline-form">{% csrf_token %}
+            <input type="hidden" name="plan" value="{{ today_plan.pk }}"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn btn-small" type="submit">Move to today</button></form>
+        {% endif %}
+        <a class="btn btn-small btn-ghost" href="{% url 'planner:goal_reschedule' g.pk %}">Choose day</a>
+        <form method="post" action="{% url 'planner:goal_toggle' g.pk %}" class="inline-form">{% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button class="btn btn-small btn-ghost" type="submit">Mark done</button></form>
+      </div>
+    </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="card">
+  <h3>Calendar</h3>
+  <div class="table-wrap">
+    <table class="calendar">
+      <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
+      <tbody>
+      {% for week in weeks %}
+        <tr>
+        {% for cell in week %}
+          {% if cell %}
+            <td class="cal-cell state-{{ cell.state }} {% if cell.is_today %}is-today{% endif %}">
+              <a href="{% url 'planner:day_detail' cell.day_number %}">
+                <span class="cal-day">Day {{ cell.day_number }}</span>
+                <span class="cal-date">{{ cell.date|date:"d M" }}</span>
+                <span class="cal-count">{% if cell.total %}{{ cell.done }}/{{ cell.total }}{% else %}&ndash;{% endif %}</span>
+              </a>
+            </td>
+          {% else %}<td class="cal-blank"></td>{% endif %}
+        {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="legend muted">
+    <span class="dot state-done"></span> all done &nbsp;
+    <span class="dot state-incomplete"></span> unfinished &nbsp;
+    <span class="dot state-today"></span> today &nbsp;
+    <span class="dot state-upcoming"></span> upcoming
+  </p>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base_app.html" %}
+{% block title %}Move goal – Goal Achiever{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h2>Reschedule goal</h2>
+  <p><strong>{{ goal.title }}</strong><br><span class="muted">Currently on Day {{ goal.plan.day_number }} ({{ goal.plan.date|date:"d M" }})</span></p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions">
+      <button type="submit" class="btn">Move goal</button>
+      <a class="btn btn-ghost" href="{% url 'planner:day_detail' goal.plan.day_number %}">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

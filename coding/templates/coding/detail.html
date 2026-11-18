@@ -1,0 +1,67 @@
+{% extends "base_app.html" %}
+{% load static score_extras %}
+{% block title %}{{ problem.title }} – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'coding:list' %}">DSA practice</a> &rsaquo; {{ problem.category }} &rsaquo; {{ problem.title }}</p>
+<div class="page-header"><h1>{{ problem.title }}
+  <span class="badge diff-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
+  {% if solved %}<span class="badge status-completed">Solved</span>{% endif %}</h1></div>
+
+<div class="problem-layout">
+<div>
+  <section class="card"><h3>Problem</h3><p>{{ problem.description }}</p>
+    <p class="muted">Write a function named <code>{{ problem.function_name }}</code>.</p>
+    {% for ex in problem.examples %}
+      <div class="example"><strong>Example {{ forloop.counter }}</strong>
+        <pre class="code"><code>{{ problem.function_name }}({{ ex.args }})
+→ {{ ex.expected }}</code></pre></div>
+    {% endfor %}
+    {% if problem.constraints %}<h4>Constraints</h4><pre class="answer-text">{{ problem.constraints }}</pre>{% endif %}
+    <p class="muted"><small>{{ hidden_count }} more hidden test{{ hidden_count|pluralize }} run when you check your code.</small></p>
+    {% if problem.hint %}<details><summary>Need a hint?</summary><p>{{ problem.hint }}</p></details>{% endif %}
+  </section>
+
+  <section class="card"><h3>Your submissions</h3>
+    {% for s in submissions %}
+      <p class="list-row"><span>{{ s.created_at|date:"d M, H:i" }} &middot; {{ s.get_mode_display }}</span>
+        <span><span class="pill {% if s.status == 'passed' or s.status == 'self_solved' %}score-good{% elif s.status == 'failed' %}score-low{% else %}score-none{% endif %}">{{ s.get_status_display }}{% if s.mode == "browser" %} {{ s.passed_count }}/{{ s.total_count }}{% endif %}</span>
+        <a href="{% url 'coding:submission' s.pk %}">view</a> &middot; <a href="?load={{ s.pk }}">load</a></span></p>
+    {% empty %}<p class="muted">Nothing yet.</p>{% endfor %}
+  </section>
+
+  <section class="card"><h3>Reference solution</h3>
+    {% if can_reveal %}<details><summary>Show a solution (try on your own first)</summary><pre class="code"><code>{{ problem.solution }}</code></pre></details>
+    {% else %}<p class="muted">Make at least one attempt (save or run your code) to unlock the reference solution.</p>{% endif %}
+  </section>
+</div>
+
+<div>
+  <section class="card">
+    <h3>Your code</h3>
+    <div class="alert alert-info"><strong>How your code is checked:</strong> this server <u>never runs your code</u>.
+      <em>Run in browser</em> executes it inside a sandbox in <u>your own browser</u> (Python compiled to WebAssembly) and sends back only the pass/fail results, which are self-reported by your browser.
+      <em>Manual mode</em> just saves your code; test it yourself with the downloadable script. Only run code you wrote.</div>
+    <form method="post" action="{% url 'coding:submit' problem.slug %}" id="code-form">
+      {% csrf_token %}
+      <textarea id="editor" name="code" rows="16" class="form-control code-input" spellcheck="false" maxlength="20000" data-code>{{ code }}</textarea>
+      <p class="actions">
+        <button type="button" id="btn-run" class="btn">&#9654; Run tests in browser</button>
+        <button type="submit" name="action" value="save" class="btn btn-ghost">Save code (manual mode)</button>
+        <button type="button" id="btn-reset" class="btn btn-ghost">Reset to starter</button>
+      </p>
+      <p id="run-status" class="muted" role="status" aria-live="polite"></p>
+      <div id="results"></div>
+      <details class="manual-box"><summary>Manual mode: test it on your own computer</summary>
+        <p class="muted">Download the script, replace the starter code with your solution, run it with Python (for example in VS Code), then come back.</p>
+        <p><a class="btn btn-small btn-ghost" href="{% url 'coding:local_script' problem.slug %}">Download local test script</a></p>
+        <label class="check-row"><input type="checkbox" name="confirm_self"> I ran this code myself and it passes the tests</label>
+        <p><button type="submit" name="action" value="self_solved" class="btn btn-small">Mark as solved (self-checked)</button></p>
+      </details>
+    </form>
+  </section>
+</div>
+</div>
+
+{{ config|json_script:"problem-data" }}
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/coding.js' %}"></script>{% endblock %}

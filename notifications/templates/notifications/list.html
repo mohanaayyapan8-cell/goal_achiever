@@ -1,0 +1,22 @@
+{% extends "base_app.html" %}
+{% block title %}Notifications – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header row-between"><h1>Notifications</h1>
+  <div class="actions">
+    <a class="btn btn-small {% if show != 'unread' %}{% else %}btn-ghost{% endif %}" href="?show=all">All</a>
+    <a class="btn btn-small {% if show == 'unread' %}{% else %}btn-ghost{% endif %}" href="?show=unread">Unread ({{ unread }})</a>
+    <a class="btn btn-small btn-ghost" href="{% url 'notifications:settings' %}">Reminder settings</a>
+    {% if unread %}<form method="post" action="{% url 'notifications:read_all' %}" class="inline-form">{% csrf_token %}<button class="btn btn-small btn-ghost" type="submit">Mark all as read</button></form>{% endif %}
+  </div></div>
+{% for n in items %}
+  <div class="card note-card note-{{ n.kind }} {% if not n.is_read %}unread{% endif %}">
+    <div class="row-between"><strong>{{ n.title }}</strong><small class="muted">{{ n.created_at|date:"d M Y, H:i" }}</small></div>
+    <p>{{ n.message }}</p>
+    <div class="actions">
+      {% if n.link %}<a class="btn btn-small" href="{{ n.link }}">Open</a>{% endif %}
+      {% if not n.is_read %}<form method="post" action="{% url 'notifications:read' n.pk %}" class="inline-form">{% csrf_token %}<button class="btn btn-small btn-ghost" type="submit">Mark as read</button></form>{% endif %}
+      <form method="post" action="{% url 'notifications:delete' n.pk %}" class="inline-form">{% csrf_token %}<button class="btn btn-small btn-danger-ghost" type="submit">Delete</button></form>
+    </div>
+  </div>
+{% empty %}<div class="card empty"><p class="muted">{% if show == "unread" %}Nothing unread. You are all caught up!{% else %}No notifications yet. Badges, reminders and streak updates will appear here.{% endif %}</p></div>{% endfor %}
+{% endblock %}

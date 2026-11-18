@@ -1,0 +1,33 @@
+{% extends "base_app.html" %}
+{% block title %}Learning – Goal Achiever{% endblock %}
+{% block content %}
+<div class="page-header row-between">
+  <h1>Learning domains</h1>
+  <div class="actions">
+    <a class="btn" href="{% url 'learning:domain_create' %}">+ Add domain</a>
+    <form method="post" action="{% url 'learning:load_defaults' %}" class="inline-form">{% csrf_token %}
+      <button class="btn btn-ghost" type="submit" title="Adds any missing default domains and topics. Nothing is overwritten.">Load default curriculum</button>
+    </form>
+  </div>
+</div>
+
+{% for d in domains %}
+  <div class="card">
+    <div class="row-between">
+      <h3><a href="{% url 'learning:domain_detail' d.pk %}">{{ d.name }}</a></h3>
+      <span class="actions">
+        <a class="btn btn-small btn-ghost" href="{% url 'learning:domain_update' d.pk %}">Edit</a>
+        <a class="btn btn-small btn-danger-ghost" href="{% url 'learning:domain_delete' d.pk %}">Delete</a>
+      </span>
+    </div>
+    {% if d.description %}<p class="muted">{{ d.description }}</p>{% endif %}
+    <p class="muted">{{ d.tech_count }} technolog{{ d.tech_count|pluralize:"y,ies" }} &middot; {{ d.done_topics }}/{{ d.total_topics }} topics completed ({{ d.percent }}%)</p>
+    {% include "partials/progress_bar.html" with value=d.percent %}
+  </div>
+{% empty %}
+  <div class="card empty">
+    <h3>No domains yet</h3>
+    <p>Add your own domain, or load the default curriculum to start quickly.</p>
+  </div>
+{% endfor %}
+{% endblock %}

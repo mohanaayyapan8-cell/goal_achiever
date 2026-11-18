@@ -1,0 +1,17 @@
+{% extends "base_app.html" %}
+{% block title %}Edit lesson – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'learning:topic_detail' topic.pk %}">&larr; {{ topic.name }}</a></p>
+<div class="card">
+  <h2>Lesson: {{ topic.name }}</h2>
+  <p class="muted">Write in your own words. Start a line with <code>- </code> for a bullet. Leave a section empty to hide it.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions">
+      <button type="submit" class="btn">Save lesson</button>
+      <a class="btn btn-ghost" href="{% url 'learning:topic_detail' topic.pk %}">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

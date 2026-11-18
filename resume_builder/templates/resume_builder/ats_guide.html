@@ -1,0 +1,15 @@
+{% extends "base_app.html" %}
+{% block title %}ATS checklist guide – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'resume_builder:list' %}">&larr; Resume</a></p>
+<div class="page-header"><h1>ATS improvement checklist</h1>
+  <p class="muted">An applicant tracking system (ATS) is software many employers use to store and search resumes. These habits help any reader, human or software.</p></div>
+<div class="alert alert-info">No tool can tell you how a particular employer's system will score you. The review in this app is an <strong>indicative checklist</strong> only.</div>
+<section class="card"><h3>1. Standard headings</h3><p>Use plain names: Summary, Skills, Experience, Projects, Education, Certifications, Achievements. Creative headings such as “My Journey” can be missed.</p></section>
+<section class="card"><h3>2. Relevant keywords</h3><p>Read the job posting. Where it is true for you, use the same words for tools and skills (for example “SQL”, “REST API”, “Power BI”) in your Skills section and in bullets.</p></section>
+<section class="card"><h3>3. Clear formatting</h3><p>One column, a normal font, real text (not a picture of text), simple dates such as “Jun 2025”. Save as PDF (or DOCX if the employer asks).</p></section>
+<section class="card"><h3>4. Skills that match the job</h3><p>Put the skills the posting asks for first. List only skills you can talk about in an interview.</p></section>
+<section class="card"><h3>5. Achievement-oriented bullets</h3><p>Start with a strong verb and show the result: <em>“Reduced report time by 60% by automating CSV exports with Python.”</em> Avoid “responsible for” and “worked on”.</p></section>
+<section class="card"><h3>6. No unnecessary graphics or tables</h3><p>Skip photos, icons, progress bars for skills, text boxes, tables and multiple columns. They often break automatic reading.</p></section>
+<p class="actions"><a class="btn" href="{% url 'resume_builder:create' %}">Build a resume</a><a class="btn btn-ghost" href="{% url 'resume_builder:list' %}">Review a resume</a></p>
+{% endblock %}

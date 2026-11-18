@@ -1,0 +1,23 @@
+{% extends "base_app.html" %}
+{% load static %}
+{% block title %}Reminder settings – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'notifications:list' %}">&larr; Notifications</a></p>
+<div class="card narrow">
+  <h2>Reminder settings</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions"><button type="submit" class="btn">Save settings</button></p>
+  </form>
+</div>
+<div class="card narrow" id="browser-box">
+  <h3>Browser notifications</h3>
+  <p>Permission in this browser: <strong id="perm-status">checking…</strong></p>
+  <p><button type="button" id="perm-btn" class="btn btn-ghost" hidden>Allow browser notifications</button></p>
+  <p class="muted"><small><strong>Important:</strong> browser notifications appear only <u>while Goal Achiever is open in a browser tab</u>.
+    They cannot reach you when the site is closed: that needs a service worker and a push service, which this project does not set up.
+    In-app reminders always work, and e-mail reminders work when the host runs the <code>send_reminders</code> command regularly.</small></p>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/notify_settings.js' %}"></script>{% endblock %}

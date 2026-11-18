@@ -1,0 +1,31 @@
+{% extends "base_app.html" %}
+{% block title %}{{ domain.name }} – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'learning:domain_list' %}">Learning</a> &rsaquo; {{ domain.name }}</p>
+<div class="page-header row-between">
+  <h1>{{ domain.name }}</h1>
+  <div class="actions">
+    <a class="btn" href="{% url 'learning:technology_create' domain.pk %}">+ Add technology</a>
+    <a class="btn btn-ghost" href="{% url 'learning:domain_update' domain.pk %}">Edit domain</a>
+    <a class="btn btn-danger-ghost" href="{% url 'learning:domain_delete' domain.pk %}">Delete</a>
+  </div>
+</div>
+{% if domain.description %}<p class="muted">{{ domain.description }}</p>{% endif %}
+
+<div class="grid">
+  {% for t in technologies %}
+    <div class="card">
+      <h3><a href="{% url 'learning:technology_detail' t.pk %}">{{ t.name }}</a></h3>
+      <p class="muted">{{ t.done_topics }}/{{ t.total_topics }} topics &middot; {{ t.percent }}%</p>
+      {% include "partials/progress_bar.html" with value=t.percent %}
+      <p class="actions">
+        <a class="btn btn-small" href="{% url 'learning:technology_detail' t.pk %}">Open</a>
+        <a class="btn btn-small btn-ghost" href="{% url 'learning:technology_update' t.pk %}">Edit</a>
+        <a class="btn btn-small btn-danger-ghost" href="{% url 'learning:technology_delete' t.pk %}">Delete</a>
+      </p>
+    </div>
+  {% empty %}
+    <div class="card empty"><p>No technologies in this domain yet. Use <strong>+ Add technology</strong>.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}

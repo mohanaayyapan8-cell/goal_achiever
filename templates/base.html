@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Goal Achiever{% endblock %}</title>
+  <script>
+    /* Apply saved theme before paint to avoid a flash */
+    (function () {
+      try {
+        var t = localStorage.getItem("ga-theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body{% if user.is_authenticated %} data-poll-url="{% url 'notifications:poll' %}" data-browser-notify="{% if browser_notify %}1{% else %}0{% endif %}"{% endif %}>
+  {% include "partials/navbar.html" %}
+  {% include "partials/messages.html" %}
+  {% block main %}
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  {% endblock %}
+  <footer class="footer container">
+    <span>Goal Achiever &middot; built step by step</span>
+  </footer>
+  <script src="{% static 'js/theme.js' %}"></script>
+  {% if user.is_authenticated %}<script src="{% static 'js/notifications.js' %}"></script>{% endif %}
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

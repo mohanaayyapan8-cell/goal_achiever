@@ -1,0 +1,15 @@
+{% extends "base_app.html" %}
+{% block title %}{{ title }} – Goal Achiever{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h2>{{ title }}</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions">
+      <button type="submit" class="btn">Save goal</button>
+      <a class="btn btn-ghost" href="javascript:history.back()">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

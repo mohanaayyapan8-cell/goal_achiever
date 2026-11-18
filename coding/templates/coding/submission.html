@@ -1,0 +1,15 @@
+{% extends "base_app.html" %}
+{% block title %}Submission – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'coding:list' %}">DSA practice</a> &rsaquo; <a href="{% url 'coding:detail' sub.problem.slug %}">{{ sub.problem.title }}</a> &rsaquo; submission</p>
+<div class="card">
+  <h2>{{ sub.problem.title }}</h2>
+  <p class="muted">{{ sub.created_at|date:"d M Y, H:i" }} &middot; {{ sub.get_mode_display }} &middot; <strong>{{ sub.get_status_display }}</strong>
+    {% if sub.mode == "browser" %}&middot; {{ sub.passed_count }}/{{ sub.total_count }} tests{% endif %}</p>
+  {% if sub.mode == "browser" %}<p class="muted"><small>Result reported by the student's own browser sandbox; the server did not run this code.</small></p>{% endif %}
+  <pre class="code"><code>{{ sub.code }}</code></pre>
+  {% if sub.error %}<p class="error-text">{{ sub.error }}</p>{% endif %}
+  {% if sub.output %}<h4>Printed output</h4><pre class="answer-text">{{ sub.output }}</pre>{% endif %}
+  <p class="actions"><a class="btn" href="{% url 'coding:detail' sub.problem.slug %}?load={{ sub.pk }}">Load into editor</a></p>
+</div>
+{% endblock %}

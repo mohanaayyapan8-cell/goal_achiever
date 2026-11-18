@@ -1,0 +1,18 @@
+{% extends "base_app.html" %}
+{% block title %}Edit profile – Goal Achiever{% endblock %}
+{% block content %}
+<div class="auth-card card wide">
+  <h2>Edit profile</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <h3>Account</h3>
+    {% include "partials/form_fields.html" with form=user_form %}
+    <h3>Learning profile</h3>
+    {% include "partials/form_fields.html" with form=profile_form %}
+    <p class="actions">
+      <button type="submit" class="btn">Save changes</button>
+      <a class="btn btn-ghost" href="{% url 'accounts:profile' %}">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

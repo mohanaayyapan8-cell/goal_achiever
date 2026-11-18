@@ -1,0 +1,36 @@
+{% extends "base_app.html" %}
+{% block title %}{{ resume.title }} – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'resume_builder:list' %}">Resume</a> &rsaquo; {{ resume.title }}</p>
+<div class="page-header row-between"><h1>{{ resume.title }}</h1>
+  <div class="actions"><a class="btn" href="{% url 'resume_builder:preview' resume.pk %}">Preview</a>
+    <a class="btn btn-ghost" href="{% url 'resume_builder:pdf' resume.pk %}">Download PDF</a>
+    <a class="btn btn-ghost" href="{% url 'resume_builder:review_resume' resume.pk %}">ATS review</a>
+    <a class="btn btn-danger-ghost" href="{% url 'resume_builder:delete' resume.pk %}">Delete</a></div></div>
+
+<section class="card"><h3>Completeness: {{ percent }}%</h3>
+  {% include "partials/progress_bar.html" with value=percent %}
+  {% if missing %}<p class="muted">Still to add: {{ missing|join:", " }}.</p>{% else %}<p class="score-good">Everything essential is filled in. Run an ATS review next.</p>{% endif %}</section>
+
+<section class="card"><div class="row-between"><h3>Details, summary and skills</h3><a class="btn btn-small btn-ghost" href="{% url 'resume_builder:update' resume.pk %}">Edit</a></div>
+  <dl class="details">
+    <dt>Name</dt><dd>{{ resume.full_name }}</dd><dt>Headline</dt><dd>{{ resume.headline|default:"–" }}</dd>
+    <dt>Contact</dt><dd>{{ resume.email|default:"–" }} · {{ resume.phone|default:"no phone" }} · {{ resume.location|default:"no location" }}</dd>
+    <dt>Links</dt><dd>{{ resume.linkedin_url|default:"–" }} {{ resume.github_url }} {{ resume.portfolio_url }}</dd>
+    <dt>Layout</dt><dd>{{ resume.get_layout_display }}</dd>
+    <dt>Summary</dt><dd>{{ resume.summary|default:"–" }}</dd>
+    <dt>Skills</dt><dd>{{ resume.skills|linebreaksbr|default:"–" }}</dd></dl></section>
+
+{% for sec in sections %}
+<section class="card">
+  <div class="row-between"><h3>{{ sec.title }} <span class="muted">({{ sec.items|length }}/{{ sec.maximum }})</span></h3>
+    {% if sec.can_add %}<a class="btn btn-small" href="{% url 'resume_builder:section_create' resume.pk sec.kind %}">+ Add</a>{% endif %}</div>
+  {% for item in sec.items %}
+    <div class="goal-row"><div class="goal-text"><strong>{% if sec.kind == "education" %}{{ item.institution }}{% elif sec.kind == "experience" %}{{ item.role }}{% elif sec.kind == "project" %}{{ item.name }}{% elif sec.kind == "certification" %}{{ item.name }}{% else %}{{ item.text }}{% endif %}</strong>
+      <small class="muted">{% if sec.kind == "education" %}{{ item.degree }} {{ item.start }}{% if item.end %}–{{ item.end }}{% endif %}{% elif sec.kind == "experience" %}{{ item.organization }} {{ item.start }}{% if item.end %}–{{ item.end }}{% endif %}{% elif sec.kind == "project" %}{{ item.tech_stack }}{% elif sec.kind == "certification" %}{{ item.issuer }} {{ item.year }}{% endif %}</small></div>
+      <div class="actions"><a class="btn btn-small btn-ghost" href="{% url 'resume_builder:section_update' sec.kind item.pk %}">Edit</a>
+        <a class="btn btn-small btn-danger-ghost" href="{% url 'resume_builder:section_delete' sec.kind item.pk %}">Delete</a></div></div>
+  {% empty %}<p class="muted">Nothing added yet.</p>{% endfor %}
+</section>
+{% endfor %}
+{% endblock %}

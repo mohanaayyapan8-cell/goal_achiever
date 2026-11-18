@@ -1,0 +1,16 @@
+{% extends "base_app.html" %}
+{% block title %}Auto-schedule – Goal Achiever{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h2>Auto-schedule a technology</h2>
+  <p class="muted">Creates one goal per unfinished topic, spread over the days. Topics that are already completed, or already waiting in a pending goal, are skipped. You can edit or move every goal afterwards.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions">
+      <button type="submit" class="btn">Create goals</button>
+      <a class="btn btn-ghost" href="{% url 'planner:overview' %}">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

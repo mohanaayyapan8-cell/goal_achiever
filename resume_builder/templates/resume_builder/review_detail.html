@@ -1,0 +1,49 @@
+{% extends "base_app.html" %}
+{% block title %}Review – {{ review.source_name }}{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'resume_builder:list' %}">Resume</a> &rsaquo; <a href="{% url 'resume_builder:reviews' %}">Reviews</a></p>
+<div class="page-header row-between">
+  <div><h1>{{ review.source_name }}</h1><p class="muted">{{ review.get_source_kind_display|default:review.source_kind }} review · {{ review.created_at|date:"d M Y, H:i" }}</p></div>
+  <div class="bigscore {% if review.score >= 75 %}score-good{% elif review.score >= 50 %}score-ok{% else %}score-low{% endif %}">{{ review.score }}</div>
+</div>
+<div class="alert alert-info"><strong>Indicative checklist score: {{ r.earned }} of {{ r.possible }} points ({{ review.score }}/100).</strong> {{ r.disclaimer }}
+  {% if not r.keyword_check_applied %}<br>The keyword check was not applied{% if not r.keywords.provided %} because no job description was given{% endif %}, so the score is based on the other {{ r.possible }} points.{% endif %}</div>
+
+{% if wins %}<section class="card"><h3>Fix these first</h3><ol>{% for c in wins %}<li><strong>{{ c.label }}</strong> (+{{ c.max|add:"0" }} pts available): {{ c.advice }}</li>{% endfor %}</ol></section>{% endif %}
+
+{% for g in r.groups %}
+<section class="card"><div class="row-between"><h3>{{ g.name }}</h3><span class="pill">{{ g.earned }} / {{ g.max }}</span></div>
+  <ul class="checks">{% for c in g.checks %}
+    <li class="{% if c.status == 'pass' %}ok{% elif c.status == 'fail' %}no{% endif %}">
+      {% if c.status == "pass" %}&#10003;{% elif c.status == "fail" %}&#10007;{% elif c.status == "partial" %}&#9680;{% else %}&ndash;{% endif %}
+      <strong>{{ c.label }}</strong>{% if c.max %} <span class="muted">({{ c.earned }}/{{ c.max }})</span>{% else %} <span class="muted">(not scored)</span>{% endif %}
+      <div class="muted">{{ c.detail }}</div>{% if c.advice %}<div>&rarr; {{ c.advice }}</div>{% endif %}</li>{% endfor %}</ul></section>
+{% endfor %}
+
+{% if r.missing_sections %}<section class="card"><h3>Missing sections</h3><p>{{ r.missing_sections|join:", " }}</p></section>{% endif %}
+{% if r.nonstandard_headings %}<section class="card"><h3>Unusual headings</h3><p>{{ r.nonstandard_headings|join:", " }}</p><p class="muted">Prefer standard names such as Education, Skills, Experience, Projects.</p></section>{% endif %}
+
+<section class="card"><h3>Keyword coverage</h3>
+  {% if r.keywords.provided and r.keywords.coverage is not None %}
+    <p><strong>{{ r.keywords.coverage }}%</strong> of the keywords found in the job description appear in your resume.</p>
+    <p>Found: {% for k in r.keywords.matched %}<span class="chip chip-ok">{{ k }}</span>{% empty %}<span class="muted">none</span>{% endfor %}</p>
+    <p>Missing: {% for k in r.keywords.missing %}<span class="chip chip-no">{{ k }}</span>{% empty %}<span class="muted">none. Great!</span>{% endfor %}</p>
+    <p class="muted"><small>Only add a keyword if it is true for you. Never list skills you do not have.</small></p>
+  {% elif r.keywords.provided %}<p class="muted">The job description had no recognisable skills. Paste a longer posting.</p>
+  {% else %}<p class="muted">Add a job description when you run the review to see keyword coverage.</p>{% endif %}
+  {% if r.keywords.other_words %}<p class="muted">Other frequent words in the job description: {{ r.keywords.other_words|join:", " }}</p>{% endif %}
+</section>
+
+<section class="card"><h3>Writing suggestions</h3>
+  {% for w in r.writing %}<p><strong>{{ w.type }}</strong> ({{ w.count }}): {{ w.tip }}<br><span class="muted">{{ w.examples|join:" · " }}</span></p>
+  {% empty %}<p class="muted">No common mistakes found. This is a basic check, not a full spell or grammar checker.</p>{% endfor %}</section>
+
+<section class="card"><h3>Skills you might add</h3>
+  {% for s in r.skill_suggestions %}<p><span class="chip">{{ s.skill }}</span> <span class="muted">{{ s.reason }}</span></p>
+  {% empty %}<p class="muted">No suggestions right now.</p>{% endfor %}
+  <p class="muted"><small>Suggestions come from the job description, your target role, and what you practised here. Add only skills you really have.</small></p></section>
+
+{% if review.job_description %}<section class="card"><details><summary>Job description used</summary><pre class="answer-text">{{ review.job_description }}</pre></details></section>{% endif %}
+<form method="post" action="{% url 'resume_builder:review_delete' review.pk %}" class="actions">{% csrf_token %}
+  <a class="btn" href="{% url 'resume_builder:list' %}">Back</a><button class="btn btn-danger-ghost" type="submit">Delete this review</button></form>
+{% endblock %}

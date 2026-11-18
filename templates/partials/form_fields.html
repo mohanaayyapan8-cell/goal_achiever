@@ -1,0 +1,12 @@
+{# Renders every field of a form with its label, help text and errors. Usage: {% include "partials/form_fields.html" with form=form %} #}
+{% if form.non_field_errors %}
+  <div class="alert alert-error">{{ form.non_field_errors }}</div>
+{% endif %}
+{% for field in form %}
+  <div class="form-row {% if field.errors %}has-error{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}<small class="muted">{{ field.help_text|safe }}</small>{% endif %}
+    {% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}
+  </div>
+{% endfor %}

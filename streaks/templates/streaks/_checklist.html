@@ -1,0 +1,10 @@
+{% if progress %}
+<ul class="checks today-checks">
+  <li class="{% if progress.goals_ok %}ok{% else %}no{% endif %}">{% if progress.goals_ok %}&#10003;{% else %}&#10007;{% endif %} Goals today: {{ progress.done }}/{{ progress.total }} done
+    <a href="{% url 'planner:today' %}">open</a></li>
+  <li class="{% if progress.written_ok %}ok{% else %}no{% endif %}">{% if progress.written_ok %}&#10003;{% else %}&#10007;{% endif %} Written assessment submitted
+    {% if not progress.written_ok %}<a href="{% url 'assessments:overview' %}">start</a>{% endif %}</li>
+  <li class="{% if progress.speaking_ok %}ok{% else %}no{% endif %}">{% if progress.speaking_ok %}&#10003;{% else %}&#10007;{% endif %} Speaking assessment submitted
+    {% if not progress.speaking_ok %}<a href="{% url 'assessments:overview' %}">start</a>{% endif %}</li>
+</ul>
+{% endif %}

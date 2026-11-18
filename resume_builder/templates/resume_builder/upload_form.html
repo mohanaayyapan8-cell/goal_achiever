@@ -1,0 +1,10 @@
+{% extends "base_app.html" %}
+{% block title %}Upload resume – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'resume_builder:list' %}">&larr; Resume</a></p>
+<div class="card narrow"><h2>Upload a resume</h2>
+  <div class="alert alert-info">&#128274; Your file is stored privately on the server. Only you can download it, it is never public, and you can delete it at any time. We check that it is a genuine PDF, DOCX or TXT file, but we never open it as a program.</div>
+  <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <p class="actions"><button class="btn" type="submit">Upload</button><a class="btn btn-ghost" href="{% url 'resume_builder:list' %}">Cancel</a></p></form></div>
+{% endblock %}

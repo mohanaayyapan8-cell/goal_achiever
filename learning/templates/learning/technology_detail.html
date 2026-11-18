@@ -1,0 +1,47 @@
+{% extends "base_app.html" %}
+{% block title %}{{ tech.name }} – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'learning:domain_list' %}">Learning</a> &rsaquo;
+  <a href="{% url 'learning:domain_detail' tech.domain_id %}">{{ tech.domain.name }}</a> &rsaquo; {{ tech.name }}</p>
+<div class="page-header row-between">
+  <h1>{{ tech.name }}</h1>
+  <div class="actions">
+    <a class="btn" href="{% url 'learning:topic_create' tech.pk %}">+ Add topic</a>
+    <a class="btn btn-ghost" href="{% url 'learning:technology_update' tech.pk %}">Edit</a>
+    <a class="btn btn-danger-ghost" href="{% url 'learning:technology_delete' tech.pk %}">Delete</a>
+  </div>
+</div>
+<p class="muted">{{ done }}/{{ total }} topics completed ({{ percent }}%)</p>
+{% include "partials/progress_bar.html" with value=percent %}
+
+<div class="card table-wrap">
+  <table class="table">
+    <thead><tr><th>#</th><th>Topic</th><th>Status</th><th>Update progress</th><th></th></tr></thead>
+    <tbody>
+    {% for topic in topics %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td><a href="{% url 'learning:topic_detail' topic.pk %}">{{ topic.name }}</a>{% if topic.completed_at %}<br><small class="muted">Completed {{ topic.completed_at|date:"d M Y" }}</small>{% endif %}</td>
+        <td><span class="badge status-{{ topic.status }}">{% if topic.status == "completed" %}Completed{% elif topic.status == "in_progress" %}In progress{% else %}Not started{% endif %}</span></td>
+        <td class="actions">
+          {% if topic.status != "in_progress" and topic.status != "completed" %}
+            {% include "learning/_status_button.html" with topic=topic status="in_progress" label="Start" %}
+          {% endif %}
+          {% if topic.status != "completed" %}
+            {% include "learning/_status_button.html" with topic=topic status="completed" label="Complete" primary=True %}
+          {% else %}
+            {% include "learning/_status_button.html" with topic=topic status="not_started" label="Undo" %}
+          {% endif %}
+        </td>
+        <td class="actions">
+          <a class="btn btn-small btn-ghost" href="{% url 'learning:topic_update' topic.pk %}">Edit</a>
+          <a class="btn btn-small btn-danger-ghost" href="{% url 'learning:topic_delete' topic.pk %}">Delete</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="muted">No topics yet. Use <strong>+ Add topic</strong>.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

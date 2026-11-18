@@ -1,0 +1,39 @@
+{% extends "base_app.html" %}
+{% load score_extras %}
+{% block title %}Speaking results – Goal Achiever{% endblock %}
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'assessments:topic_hub' assessment.topic_id %}">&larr; {{ assessment.topic_name }}</a></p>
+<div class="page-header row-between">
+  <div><h1>Speaking results: {{ assessment.topic_name }}</h1>
+    <p class="muted">Attempt #{{ assessment.attempt_number }} &middot; {{ assessment.submitted_at|date:"d M Y, H:i" }} &middot;
+      {% if answer.input_method == "speech" %}spoken (speech recognition){% else %}typed{% endif %}</p></div>
+  <div class="bigscore {{ answer.overall|score_class }}">{{ answer.overall|floatformat:0 }}%</div>
+</div>
+<div class="alert alert-info"><strong>What this score means:</strong> {{ answer.details.limitations }}</div>
+
+<section class="card"><h3>Question</h3><p>{{ assessment.question_text }}</p>
+  <h4>Your answer</h4><pre class="answer-text">{{ answer.final_text }}</pre>
+  {% if answer.raw_transcript and answer.raw_transcript != answer.final_text %}
+    <details><summary class="muted">Original speech-to-text before your edits</summary><pre class="answer-text">{{ answer.raw_transcript }}</pre></details>{% endif %}
+</section>
+
+<section class="card"><h3>Scores</h3>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Criterion</th><th>Score</th><th>Why</th></tr></thead><tbody>
+    {% for key, value in answer.criteria.items %}
+      <tr><td>{{ key|criterion_label }}</td><td><span class="pill {{ value|score_class }}">{{ value }}%</span></td>
+        <td>{% for note in answer.details.notes|get_item:key %}<div class="muted">{{ note }}</div>{% endfor %}</td></tr>
+    {% endfor %}</tbody></table></div>
+</section>
+
+{% if answer.details.issues %}<section class="card"><h3>Grammar notes</h3>
+  <ul>{% for i in answer.details.issues %}<li><strong>“{{ i.text }}”</strong>: {{ i.message }}</li>{% endfor %}</ul></section>{% endif %}
+{% if answer.details.tips %}<section class="card"><h3>How to improve</h3><ul>{% for t in answer.details.tips %}<li>{{ t }}</li>{% endfor %}</ul></section>{% endif %}
+{% if assessment.question_data.points %}<section class="card"><h3>A strong answer mentions</h3>
+  <ul>{% for p in assessment.question_data.points %}<li>{{ p.label }}</li>{% endfor %}</ul></section>{% endif %}
+
+<div class="actions">
+  <form method="post" action="{% url 'assessments:speaking_start' assessment.topic_id %}">{% csrf_token %}<button class="btn" type="submit">Try again</button></form>
+  <a class="btn btn-ghost" href="{% url 'assessments:topic_hub' assessment.topic_id %}">Back to topic assessments</a>
+</div>
+{% endblock %}
